@@ -6,14 +6,14 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
   {
-    files: [
-      "src/components/**/*.{js,mjs,cjs,jsx}",
-      "src/pages/**/*.{js,mjs,cjs,jsx}",
-      "src/Layout.jsx",
-    ],
-    ignores: ["src/lib/**/*", "src/components/ui/**/*"],
+    files: ["**/*.{js,mjs,cjs,jsx}"],
+    ignores: ["src/lib/**/*", "src/components/ui/**/*", "node_modules", "dist"],
     ...pluginJs.configs.recommended,
     ...pluginReact.configs.flat.recommended,
+    plugins: {
+      "react-hooks": pluginReactHooks,
+      "unused-imports": pluginUnusedImports,
+    },
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
@@ -23,3 +23,13 @@ export default [
           jsx: true,
         },
       },
+    },
+    rules: {
+      ...pluginReactHooks.configs.recommended.rules,
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
+      "no-unused-vars": "warn",
+      "unused-imports/no-unused-imports": "error",
+    },
+  },
+];
