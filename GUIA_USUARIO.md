@@ -1,6 +1,6 @@
 # 📘 Guía Completa de Nexus Chat
 
-> Tu asistente de inteligencia artificial con SLMs, voz a texto y búsqueda en documentos.
+> Tu asistente de inteligencia artificial con SLMs, voz a texto (STT), texto a voz (TTS) y búsqueda en documentos.
 
 ---
 
@@ -11,12 +11,15 @@
 3. [Crear y Gestionar Conversaciones](#3-crear-y-gestionar-conversaciones)
 4. [Enviar Mensajes de Texto](#4-enviar-mensajes-de-texto)
 5. [Enviar Mensajes por Voz (Speech-to-Text)](#5-enviar-mensajes-por-voz-speech-to-text)
-6. [Adjuntar Archivos](#6-adjuntar-archivos)
+6. [Escuchar Respuestas (Text-to-Speech)](#6-escuchar-respuestas-text-to-speech)
+7. [Adjuntar Archivos](#7-adjuntar-archivos)
 7. [Configurar el Modelo de IA](#7-configurar-el-modelo-de-ia)
 8. [Catálogo de Modelos Disponibles](#8-catálogo-de-modelos-disponibles)
 9. [Sistema RAG — Indexar y Buscar en Documentos](#9-sistema-rag--indexar-y-buscar-en-documentos)
-10. [Cerrar Sesión](#10-cerrar-sesión)
-11. [Solución de Problemas](#11-solución-de-problemas)
+10. [Catálogo de Modelos Disponibles](#10-catálogo-de-modelos-disponibles)
+11. [Sistema RAG — Indexar y Buscar en Documentos](#11-sistema-rag--indexar-y-buscar-en-documentos)
+12. [Cerrar Sesión](#12-cerrar-sesión)
+13. [Solución de Problemas](#13-solución-de-problemas)
 
 ---
 
@@ -193,14 +196,40 @@ Una vez dentro, verás tres zonas:
 | ✅ Enviado | El texto transcrito aparece como mensaje |
 | ❌ Error | Mensaje `[Error al transcribir el audio]` |
 
-> 💡 **Consejos para mejor reconocimiento:**
+> **Consejos para mejor reconocimiento:**
 > - Habla claro y pausado
 > - Evita ruidos de fondo
 > - Grabaciones cortas (< 30 segundos) funcionan mejor
 
 ---
 
-## 6. Adjuntar Archivos
+## 6. Escuchar Respuestas (Text-to-Speech)
+
+### Reproducir respuesta con voz
+
+Después de que el asistenteenvíe una respuesta de texto, puedes escucharla en voz alta:
+
+1. Busca el ícono de **altavoz** (🔊) debajo del mensaje del asistente.
+2. Haz clic para **iniciar la reproducción**.
+3. El ícono cambia a un **spinner** mientras carga el audio.
+4. Cuando comienza a reproducir, el ícono muestra una **onda de sonido animada**.
+5. Haz clic de nuevo para **detener** la reproducción.
+
+### Indicadores visuales
+
+| Estado | Qué ves |
+|---|---|
+| 🔊 Normal | Altavoz gris — listo para reproducir |
+| ⏳ Cargando | Spinner amarillo "TTS iniciando..." |
+| 🔊 Reproduciendo | Altavoz con onda animada |
+| ✅ Completado | Reproducción terminada, listo para otra |
+| ⚠️ Error | Mensaje amarillo de error |
+
+> **Nota:** El TTS depende de un servicio externo. La primera vez puede tomar 1-2 minutos en inicializar.
+
+---
+
+## 8. Adjuntar Archivos
 
 ### Adjuntar un documento
 
@@ -221,7 +250,7 @@ Una vez dentro, verás tres zonas:
 
 ---
 
-## 7. Configurar el Modelo de IA
+## 9. Configurar el Modelo de IA
 
 ### Abrir la configuración
 
@@ -287,7 +316,7 @@ Hay **tres** opciones:
 
 ---
 
-## 8. Catálogo de Modelos Disponibles
+## 10. Catálogo de Modelos Disponibles
 
 ### ⚡ Ultra ligeros (< 2B) — Rápidos, ideales para pruebas
 
@@ -336,7 +365,7 @@ Hay **tres** opciones:
 
 ---
 
-## 9. Sistema RAG — Indexar y Buscar en Documentos
+## 11. Sistema RAG — Indexar y Buscar en Documentos
 
 ### ¿Qué es RAG?
 
@@ -405,7 +434,7 @@ Hay **tres** opciones:
 
 ---
 
-## 10. Cerrar Sesión
+## 12. Cerrar Sesión
 
 1. En la barra lateral, mira la parte inferior donde está tu **perfil**.
 2. Verás tu nombre, email, y dos botones.
@@ -416,7 +445,7 @@ Hay **tres** opciones:
 
 ---
 
-## 11. Solución de Problemas
+## 13. Solución de Problemas
 
 ### "No hay conversaciones aún"
 
@@ -467,7 +496,8 @@ Hay **tres** opciones:
 | Eliminar chat | `🗑️` al pasar el mouse sobre el chat |
 | Abrir configuración LLM | `⚙️ LLM` o `⚙️` en barra lateral |
 | Ir al RAG | `🤖` en barra lateral superior |
-| Grabar voz | `🎤` en el input |
+| Grabar voz (STT) | `🎤` en el input |
+| Escuchar respuesta (TTS) | `🔊` bajo mensaje del asistente |
 | Adjuntar archivo | `📎` en el input |
 | Enviar mensaje | `Enter` o `📤` |
 | Nueva línea en mensaje | `Shift + Enter` |
