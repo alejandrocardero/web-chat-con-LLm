@@ -1,184 +1,135 @@
-# 💬 Chat LLM
+# 🧠 Nexus Chat - LLM Chat Application
 
-Aplicación web local para chatear con modelos de lenguaje (LLM) usando **Ollama**.
+Aplicación web moderna para chatear con modelos de lenguaje local (LLM) utilizando **Ollama** y **Hugging Face**. Interfaz intuitiva con soporte para conversaciones, análisis de documentos y configuración flexible.
 
----
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=flat&logo=node.js)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-18.2-blue?style=flat&logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-5.1-yellow?style=flat&logo=vite)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=flat)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+## 🌟 Características
+
+- 💬 **Chat con LLM** - Conversaciones en tiempo real con modelos locales
+- 📄 **Análisis de Documentos** - Soporte para TXT, MD, DOCX, JSON, CSV
+- 🔊 **Texto a Voz (TTS)** - Reproducción auditiva de respuestas
+- 🔒 **Privacidad Local** - Todos los datos se almacenan en localStorage
+- 🎨 **Interfaz Moderna** - Diseño responsivo con Tailwind CSS
+- ⚡ **Tiempo Real** - Streaming de respuestas del modelo
 
 ## 🚀 Requisitos
 
-### 1. Node.js y npm
-- **Node.js** versión 18 o superior
-- **npm** (incluido con Node.js)
+| Requisito | Versión Mínima |
+|-----------|---------------|
+| Node.js   | 18+           |
+| npm       | 9+            |
 
-Descargar: https://nodejs.org/
-
-### 2. Ollama
-- **Ollama** instalado
-- Al menos un modelo descargado
-
-Descargar: https://ollama.com/
+### Instalar Ollama (Opcional)
 
 ```bash
-# Descargar un modelo
-ollama pull glm-4.6:cloud
+# macOS / Linux
+curl -fsSL https://ollama.com/install.sh | sh
 
-# Ver modelos instalados
-ollama list
+# Windows
+# Descargar desde https://ollama.com/download/windows
 ```
 
----
+### Modelos Soportados
+
+- **Ollama**: glm-4.6, llama3.2, qwen2.5, mistral
+- **Hugging Face**: meta-llama/Llama-3.2-1B-Instruct, Qwen/Qwen2.5-Coder-3B-Instruct
 
 ## 📦 Instalación
 
 ```bash
-# 1. Navega a la carpeta del proyecto
-cd "C:\Users\PC\nexus chat"
+# 1. Clonar el repositorio
+git clone https://github.com/alejandrocardero/web-chat-con-LLm.git
+cd web-chat-con-LLm
 
-# 2. Instala dependencias
+# 2. Instalar dependencias
 npm install
 
-# 3. Inicia la aplicación
+# 3. Iniciar la aplicación
 npm run dev
 ```
 
-La aplicación se abrirá en: **http://localhost:5173**
+La aplicación estará disponible en **[http://localhost:5173](http://localhost:5173)**
 
----
+## ⚙️ Configuración
 
-## ⚙️ Configuración Inicial
+###Configurar LLM
 
-La app viene preconfigurada con:
-- **URL:** `http://localhost:11434/v1`
-- **Modelo:** `glm-4.6:cloud`
-
-Para cambiar la configuración:
 1. Haz clic en **"Configurar Ollama"** en el sidebar
-2. Ajusta URL y modelo
-3. Click en **"Probar conexión"**
-4. Click en **"Guardar"**
+2. Selecciona el proveedor (Hugging Face, Ollama, o Custom)
+3. Ajusta la **URL** y selecciona el **modelo**
+4. Click en **"Probar conexión"**
+5. Click en **"Guardar"**
 
----
+### Variables de Entorno (Opcional)
 
-## 💡 Cómo Usar
+```bash
+VITE_OLLAMA_URL=http://localhost:11434/v1
+VITE_DEFAULT_MODEL=glm-4.6:cloud
+```
 
-| Acción | Instrucción |
-|--------|-------------|
-| **Nueva conversación** | Click en botón `+` |
-| **Enviar mensaje** | Escribe y presiona `ENTER` |
-| **Salto de línea** | `SHIFT + ENTER` |
-| **Renombrar chat** | Click en el lápiz ✏️ |
-| **Eliminar chat** | Click en basura 🗑️ |
-| **Adjuntar audio** | Click en micrófono 🎤 |
-| **Adjuntar documento** | Click en clip 📎 (TXT, MD, DOCX, JSON, CSV) |
+## 💡 Uso
 
-### 📄 Analizar Documentos
+| Acción | Atajo |
+|--------|-------|
+| Nueva conversación | Botón `+` |
+| Enviar mensaje | `ENTER` |
+| Salto de línea | `SHIFT + ENTER` |
+| Renombrar chat | Click en ✏️ |
+| Eliminar chat | Click en 🗑️ |
+| Adjuntar documento | Click en 📎 |
 
-El chat puede **leer y analizar documentos** de texto:
+### Analizar Documentos
 
 1. Click en el clip 📎
-2. Selecciona un archivo **.txt, .md, .docx, .json o .csv**
-3. El contenido se extraerá automáticamente
-4. Escribe tu pregunta sobre el documento
-5. La IA analizará el contenido y responderá
+2. Selecciona un archivo **(TXT, MD, DOCX, JSON, CSV)**
+3. Escribe tu pregunta sobre el documento
+4. La IA analizará el contenido automáticamente
 
-**Formatos soportados:**
-- `.txt` - Texto plano
-- `.md` - Markdown
-- `.docx` - Word (solo texto, sin imágenes)
-- `.json` - JSON formateado
-- `.csv` - Datos tabulares
-
-**Ejemplos de uso:**
-- "Resume este documento"
-- "¿Cuáles son los puntos principales?"
-- "Extrae todas las fechas mencionadas"
-- "Traduce este texto a inglés"
-
----
-
-## 🛠️ Comandos NPM
+## 🛠️ Comandos
 
 ```bash
 npm run dev      # Servidor de desarrollo
 npm run build    # Compilar para producción
-npm run preview  # Vista previa
+npm run preview  # Vista previa de producción
 npm run lint     # Verificar código
-npm run lint:fix # Corregir código
+npm run lint:fix  # Corregir errores de código
 ```
 
----
-
-## 🔧 Solución de Problemas
-
-### ❌ No recibo respuesta de la IA
-```bash
-# 1. Verifica que Ollama esté corriendo
-ollama list
-
-# 2. Si no hay modelos, descarga uno
-ollama pull glm-4.6:cloud
-
-# 3. Abre consola del navegador (F12) y revisa errores
-```
-
-### ❌ Error de conexión
-```bash
-# Inicia Ollama
-ollama serve
-
-# Verifica la conexión
-curl http://localhost:11434/api/tags
-```
-
-### ❌ Modelo no disponible
-```bash
-# Lista modelos instalados
-ollama list
-
-# Descarga el modelo necesario
-ollama pull <nombre-modelo>
-```
-
----
-
-## 📁 Estructura
+## 🏗️ Estructura
 
 ```
-nexus chat/
+web-chat-con-LLm/
 ├── scr/
 │   ├── api/           # Cliente de conexión
 │   ├── components/    # Componentes React
-│   ├── lib/           # Utilidades
-│   └── pages/         # Páginas
-├── package.json       # Dependencias
-├── vite.config.js     # Config Vite
+│   │   └── chat/    # Componentes del chat
+│   ├── hooks/        # Custom hooks
+│   ├── lib/         # Utilidades y contexto
+│   └── pages/       # Páginas de la app
+├── package.json    # Dependencias
+├── vite.config.js  # Configuración Vite
 └── tailwind.config.js # Config Tailwind
 ```
 
----
-
-## 🔒 Privacidad
-
-- ✅ Todos los datos se guardan **localmente** (localStorage)
-- ✅ No se envía información a servidores externos
-- ✅ Las conversaciones se procesan localmente con Ollama
-
----
-
-## 🛠️ Tecnologías
+## 🔧 Tecnologías
 
 - **React 18.2** - Framework UI
 - **Vite 5.1** - Build tool
 - **Tailwind CSS 3.4** - Estilos
-- **Radix UI** - Componentes
+- **Radix UI** - Componentes accesibles
 - **React Markdown** - Renderizado Markdown
+- **Mammoth.js** - Extracción de documentos DOCX
+- **@base44/sdk** - Backend local
+
+## 📝 Licencia
+
+MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 ---
 
-## 📄 Licencia
-
-Uso personal y educativo.
-
----
-
-**¡Disfruta Chat LLM! 💬**
+**¡Enjoy chatting with AI! 🤖**
