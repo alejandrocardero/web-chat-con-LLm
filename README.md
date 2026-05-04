@@ -68,6 +68,8 @@ Para cambiar la configuración:
 | **Salto de línea** | `SHIFT + ENTER` |
 | **Renombrar chat** | Click en el lápiz ✏️ |
 | **Eliminar chat** | Click en basura 🗑️ |
+| **Cambiar tema** | Click en botón 🌙/☀️ |
+| **Mostrar/ocultar sidebar** | Click en botón 📋 |
 | **Adjuntar audio** | Click en micrófono 🎤 |
 | **Adjuntar documento** | Click en clip 📎 (TXT, MD, DOCX, JSON, CSV) |
 
@@ -108,6 +110,28 @@ npm run lint:fix # Corregir código
 
 ---
 
+## 🎨 Tema de la Aplicación
+
+La aplicación soporta **tema claro y oscuro**:
+
+| Acción | Instruccción |
+|--------|---------------|
+| **Cambiar tema** | Click en botón 🌙/☀️ en la barra superior |
+| **Persistir** | El tema se guarda automáticamente |
+
+---
+
+## 📋 Mostrar/Ocultar Sidebar
+
+ puedes ocultar el panel lateral para tener más espacio de chat:
+
+| Acción | Instruccción |
+|--------|---------------|
+| **Ocultar sidebar** | Click en botón 📋 |
+| **Mostrar sidebar** | Click nuevamente en el botón |
+
+---
+
 ## 🔧 Solución de Problemas
 
 ### ❌ No recibo respuesta de la IA
@@ -145,13 +169,14 @@ ollama pull <nombre-modelo>
 
 ```
 nexus chat/
-├── scr/
+├── src/
 │   ├── api/           # Cliente de conexión
-│   ├── components/    # Componentes React
-│   ├── lib/           # Utilidades
-│   └── pages/         # Páginas
-├── package.json       # Dependencias
-├── vite.config.js     # Config Vite
+│   ├── components/   # Componentes React
+│   ├── hooks/        # Custom hooks
+│   ├── lib/          # Utilidades
+│   └── pages/        # Páginas
+├── package.json      # Dependencias
+├── vite.config.js    # Config Vite
 └── tailwind.config.js # Config Tailwind
 ```
 
