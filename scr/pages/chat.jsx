@@ -6,6 +6,21 @@ import ChatInput from '../components/chat/ChatInput';
 import LLMSettingsModal from '../components/chat/LLMSettingsModal';
 import { Bot, Menu, X } from 'lucide-react';
 
+// Build a chat prompt from message history (for Hugging Face models)
+function buildPromptFromHistory(history) {
+  // Format for Llama-3.1/Mistral-style models
+  let prompt = '';
+  for (const msg of history) {
+    if (msg.role === 'user') {
+      prompt += `<|start_header_id|>user<|end_header_id|>\n\n${msg.content}<|eot_id|>`;
+    } else if (msg.role === 'assistant') {
+      prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n${msg.content}<|eot_id|>`;
+    }
+  }
+  prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n`;
+  return prompt;
+}
+
 export default function Chat() {
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -13,17 +28,8 @@ export default function Chat() {
   const [llmConfig, setLlmConfig] = useState(null);
   const [sending, setSending] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef(null);
-
-  // Default Ollama config
-  const defaultLlmConfig = {
-    base_url: 'http://localhost:11434/v1',
-    model: 'glm-4.6:cloud',
-    api_key: '',
-    temperature: 0.7,
-    max_tokens: 2048
-  };
 
   useEffect(() => {
     loadConversations();
@@ -49,13 +55,20 @@ export default function Chat() {
     setMessages(msgs);
   };
 
+  const DEFAULT_HF_TOKEN = '';
+
   const loadLLMConfig = async () => {
     const list = await base44.entities.LLMConfig.list();
     if (list.length > 0) {
-      setLlmConfig(list[0]);
-    } else {
-      // Use default config if none saved
-      setLlmConfig(defaultLlmConfig);
+      const cfg = list[0];
+      setLlmConfig({
+        provider: cfg.provider || 'huggingface',
+        base_url: cfg.base_url || 'https://router.huggingface.co/v1',
+        model: cfg.model || 'meta-llama/Llama-3.2-1B-Instruct',
+        api_key: cfg.provider === 'huggingface' ? DEFAULT_HF_TOKEN : (cfg.api_key || ''),
+        temperature: cfg.temperature ?? 0.7,
+        max_tokens: cfg.max_tokens ?? 2048
+      });
     }
   };
 
@@ -82,165 +95,149 @@ export default function Chat() {
   };
 
   const sendMessage = async ({ text, attachment }) => {
-    if (!activeId) {
-      console.error('No hay conversación activa');
+    if (!activeId) return;
+    if (!llmConfig) {
+      // On mobile, show a prompt instead of opening the modal directly
+      const shouldOpen = window.confirm('No tienes configurado un modelo LLM. ¿Deseas configurarlo ahora?');
+      if (shouldOpen) {
+        setSettingsOpen(true);
+      }
       return;
     }
-    
-    const currentConfig = llmConfig || defaultLlmConfig;
-    
+
     // Build user message content
     let content = text || '';
     let type = 'text';
     let file_url = null;
     let file_name = null;
-    let documentContent = null;
 
     if (attachment) {
       type = attachment.type;
       file_name = attachment.name;
-      
-      if (attachment.type === 'document' && attachment.content) {
-        // Document was uploaded - extract and include content
-        documentContent = attachment.content;
-        file_url = 'document'; // Marker for document content
-        if (!content) {
-          content = `Analiza este documento y responde mis preguntas sobre él.\n\n[Documento: ${attachment.name}]\n\n${documentContent}`;
-        } else {
-          content = `${text}\n\n[Documento adjunto: ${attachment.name}]\n\n${documentContent}`;
-        }
-      } else if (attachment.type === 'audio') {
-        if (!content) content = '[Mensaje de audio]';
-      }
+      // Upload file
+      const { file_url: url } = await base44.integrations.Core.UploadFile({ file: attachment.file });
+      file_url = url;
+      if (!content) content = attachment.type === 'audio' ? '[Mensaje de audio]' : `[Documento: ${attachment.name}]`;
     }
-
-    console.log('Enviando mensaje...', { text, attachment, config: currentConfig, hasDocContent: !!documentContent });
 
     const userMsg = await base44.entities.Message.create({ conversation_id: activeId, role: 'user', content, type, file_url, file_name });
     setMessages(p => [...p, userMsg]);
 
     setSending(true);
 
-    try {
-      // Build context for LLM - include conversation history
-      const history = [...messages, userMsg].map(m => {
-        // For document messages, include the full content
-        if (m.type === 'document' && m.file_url === 'document') {
-          return { role: m.role, content: m.content };
-        }
-        return { role: m.role, content: m.content };
+    // Build context for LLM
+    const history = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
+
+    let assistantText = '';
+
+    // Call API based on provider
+if (llmConfig.provider === 'huggingface') {
+      const apiUrl = `${window.location.origin}/hf-api/chat/completions`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${llmConfig.api_key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: llmConfig.model,
+          messages: history,
+          temperature: llmConfig.temperature ?? 0.7,
+          max_tokens: llmConfig.max_tokens ?? 2048,
+        }),
       });
-      
-      console.log('Historial:', history.length, 'mensajes');
 
-      const apiUrl = `${currentConfig.base_url}/chat/completions`;
-      console.log('Llamando a:', apiUrl);
+      if (!response.ok) {
+        const errorData = await response.json();
+        assistantText = `Error del modelo: ${response.status} - ${errorData.error?.message || JSON.stringify(errorData)}`;
+      } else {
+        const data = await response.json();
+        assistantText = data.choices?.[0]?.message?.content || 'Sin respuesta del modelo.';
+      }
+    } else if (llmConfig.provider === 'custom') {
+      // Custom SLM API (your own deployed service)
+      const apiUrl = `${llmConfig.base_url}/v1/chat/completions`;
 
-      // Call Ollama API with streaming
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(currentConfig.api_key ? { Authorization: `Bearer ${currentConfig.api_key}` } : {}),
+          ...(llmConfig.api_key ? { Authorization: `Bearer ${llmConfig.api_key}` } : {}),
         },
         body: JSON.stringify({
-          model: currentConfig.model,
+          model: llmConfig.model,
           messages: history,
-          temperature: currentConfig.temperature ?? 0.7,
-          max_tokens: currentConfig.max_tokens ?? 8192,
-          stream: true, // Enable streaming
+          temperature: llmConfig.temperature ?? 0.7,
+          max_tokens: llmConfig.max_tokens ?? 2048,
+        }),
+        // First request may take time to load model
+        signal: AbortSignal.timeout(180000), // 3 min timeout
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        assistantText = `Error del modelo: ${response.status} - ${errorData.detail || JSON.stringify(errorData)}`;
+      } else {
+        const data = await response.json();
+        assistantText = data.choices?.[0]?.message?.content || 'Sin respuesta del modelo.';
+      }
+    } else {
+      // OpenAI-compatible API (Ollama, OpenAI, etc.)
+      const response = await fetch(`${llmConfig.base_url}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(llmConfig.api_key ? { Authorization: `Bearer ${llmConfig.api_key}` } : {}),
+        },
+        body: JSON.stringify({
+          model: llmConfig.model,
+          messages: history,
+          temperature: llmConfig.temperature ?? 0.7,
+          max_tokens: llmConfig.max_tokens ?? 2048,
+          stream: false,
         }),
       });
 
-      console.log('Respuesta status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error en la respuesta:', errorText);
-        throw new Error(`Error ${response.status}: ${errorText}`);
-      }
-
-      // Create placeholder for assistant message
-      const assistantMsgId = Date.now().toString();
-      let assistantText = '';
-      
-      // Add placeholder message
-      setMessages(p => [...p, { 
-        id: assistantMsgId, 
-        conversation_id: activeId, 
-        role: 'assistant', 
-        content: '', 
-        type: 'text',
-        created_date: new Date().toISOString()
-      }]);
-
-      // Process streaming response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content || '';
-              assistantText += delta;
-              
-              // Update message content in real-time
-              setMessages(p => p.map(m => 
-                m.id === assistantMsgId 
-                  ? { ...m, content: assistantText }
-                  : m
-              ));
-            } catch (e) {
-              // Ignore parse errors for incomplete chunks
-            }
-          }
-        }
-      }
-
-      // Save final message to storage
-      const finalMsg = await base44.entities.Message.create({
-        conversation_id: activeId,
-        role: 'assistant',
-        content: assistantText,
-        type: 'text',
-      });
-
-      // Replace placeholder with real message
-      setMessages(p => p.map(m => m.id === assistantMsgId ? finalMsg : m));
-
-      // Update conversation preview
-      await base44.entities.Conversation.update(activeId, { preview: assistantText.slice(0, 100) });
-      setConversations(p => p.map(c => c.id === activeId ? { ...c, preview: assistantText.slice(0, 100) } : c));
-    } catch (error) {
-      console.error('Error al enviar mensaje:', error);
-      alert(`Error: ${error.message}`);
-    } finally {
-      setSending(false);
+      const data = await response.json();
+      assistantText = data.choices?.[0]?.message?.content || 'Sin respuesta del modelo.';
     }
+
+    const assistantMsg = await base44.entities.Message.create({
+      conversation_id: activeId,
+      role: 'assistant',
+      content: assistantText,
+      type: 'text',
+    });
+
+    setMessages(p => [...p, assistantMsg]);
+
+    // Update conversation preview
+    await base44.entities.Conversation.update(activeId, { preview: assistantText.slice(0, 100) });
+    setConversations(p => p.map(c => c.id === activeId ? { ...c, preview: assistantText.slice(0, 100) } : c));
+
+    setSending(false);
   };
 
   const activeConv = conversations.find(c => c.id === activeId);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
+      {/* Mobile overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex flex-col h-full transition-all`}>
+      <div className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex flex-col h-full fixed md:relative z-40 md:z-auto w-[calc(100%-4rem)] sm:w-72 md:w-auto transition-all`}>
         <ConversationSidebar
           conversations={conversations}
           activeId={activeId}
-          onSelect={setActiveId}
-          onCreate={createConversation}
+          onSelect={(id) => { setActiveId(id); setSidebarOpen(false); }}
+          onCreate={() => { createConversation(); setSidebarOpen(false); }}
           onDelete={deleteConversation}
           onRename={renameConversation}
           onOpenSettings={() => setSettingsOpen(true)}
@@ -250,8 +247,8 @@ export default function Chat() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Chat header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border shrink-0">
-          <button onClick={() => setSidebarOpen(p => !p)} className="md:hidden text-muted-foreground hover:text-foreground">
+        <div className="flex items-center gap-3 px-3 md:px-4 py-3.5 border-b border-border shrink-0">
+          <button onClick={() => setSidebarOpen(p => !p)} className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground">
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
@@ -264,13 +261,13 @@ export default function Chat() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto py-3 md:py-4 space-y-3">
           {!activeId && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Bot className="h-8 w-8 text-primary" />
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-4 md:px-8">
+              <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Bot className="h-7 w-7 md:h-8 md:w-8 text-primary" />
               </div>
-              <p className="text-foreground font-medium">Bienvenido a Chat LLM</p>
+              <p className="text-sm md:text-base text-foreground font-medium">Bienvenido a Chat con SLMs</p>
               <p className="text-xs text-muted-foreground">Crea una nueva conversación o selecciona una existente para comenzar.</p>
             </div>
           )}
@@ -286,7 +283,7 @@ export default function Chat() {
           ))}
 
           {sending && (
-            <div className="flex gap-3 px-4 justify-start">
+            <div className="flex gap-3 px-3 md:px-4 justify-start">
               <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
                 <Bot className="h-4 w-4 text-primary" />
               </div>
@@ -305,7 +302,7 @@ export default function Chat() {
 
         {/* Input */}
         {activeId && (
-          <ChatInput onSend={sendMessage} disabled={false} isSending={sending} />
+          <ChatInput onSend={sendMessage} disabled={sending} />
         )}
       </div>
 
