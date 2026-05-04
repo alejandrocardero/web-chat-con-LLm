@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
-  logLevel: 'error',
+  logLevel: 'info',
   plugins: [react()],
   resolve: {
     alias: {
