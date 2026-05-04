@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import mammoth from 'mammoth';
 
-const DEFAULT_HF_TOKEN = '';
+const DEFAULT_HF_TOKEN = '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';
 
 export default function RAG() {
   const [file, setFile] = useState(null);
@@ -15,16 +15,6 @@ export default function RAG() {
   
   // Check URL for token first, then localStorage, or use default
   const getInitialToken = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlToken = urlParams.get('hf_token');
-    if (urlToken) {
-      localStorage.setItem('hf_token', urlToken);
-      window.history.replaceState({}, '', window.location.pathname);
-      return urlToken;
-    }
-    const stored = localStorage.getItem('hf_token');
-    if (stored) return stored;
-    // Use default token if nothing stored
     localStorage.setItem('hf_token', DEFAULT_HF_TOKEN);
     return DEFAULT_HF_TOKEN;
   };
@@ -53,7 +43,10 @@ export default function RAG() {
   };
 
   const getEmbedding = async (text) => {
-    // Use direct HF URL for embeddings - works for both localhost and forwarded access
+    if (!hfToken || hfToken.trim() === '') {
+      throw new Error('Token de HuggingFace no configurado');
+    }
+    
     const apiUrl = 'https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction';
 
     const response = await fetch(apiUrl, {
@@ -74,7 +67,12 @@ export default function RAG() {
       throw new Error(errorText || `Error ${response.status}`);
     }
 
-    return await response.json();
+    const jsonStr = await response.text();
+    if (!jsonStr || jsonStr.trim() === '') {
+      throw new Error('Respuesta vacía del servidor');
+    }
+    
+    return JSON.parse(jsonStr);
   };
 
   const handleFileChange = (event) => {

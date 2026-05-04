@@ -29,7 +29,7 @@ const HF_MODELS = [
   // NO disponibles: SmolLM2, SmolLM3, Phi-3.5, Gemma-2, Mistral-7B, Qwen 1.5B/3B/3B-Instruct
 ];
 
-const HF_TOKEN = '';
+const HF_TOKEN = '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';
 
 export default function LLMSettingsModal({ open, onClose }) {
 
@@ -83,11 +83,11 @@ const testConnection = async () => {
     setTestResult(null);
     try {
       let apiUrl, headers, body;
-      const token = config.api_key || localStorage.getItem('hf_token') || HF_TOKEN;
+      const token = config.api_key || HF_TOKEN;
       console.log('Testing with token:', token.slice(0,10) + '...');
       
       if (config.provider === 'huggingface') {
-        apiUrl = `${window.location.origin}/hf-api/chat/completions`;
+        apiUrl = 'https://router.huggingface.co/v1/chat/completions';
         headers = {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -99,7 +99,6 @@ const testConnection = async () => {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
       } else {
-        // OpenAI / Ollama
         apiUrl = `${config.base_url}/chat/completions`;
         headers = {
           'Content-Type': 'application/json',
@@ -120,7 +119,14 @@ const testConnection = async () => {
         signal: AbortSignal.timeout(30000),
       });
       
-      const data = await res.json();
+      const responseText = await res.text();
+      if (!responseText || responseText.trim() === '') {
+        setTestResult({ ok: false, msg: `Error ${res.status}: Respuesta vacía` });
+        setTesting(false);
+        return;
+      }
+      
+      const data = JSON.parse(responseText);
       const errorMsg = data.error?.message || data.detail || JSON.stringify(data);
       setTestResult(res.ok ? { ok: true, msg: '✓ Conexión exitosa' } : { ok: false, msg: `Error ${res.status}: ${errorMsg}` });
     } catch (e) {

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { FileText, Mic, User, Bot, Volume2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const TTS_API_URL = `${window.location.origin}/tts-api/synthesize`;
+const TTS_API_URL = 'https://8002-01kp9rrxbcsd6cndbwf3qk8r6m.cloudspaces.litng.ai/synthesize';
 
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user';
@@ -26,8 +26,14 @@ export default function MessageBubble({ message }) {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
-      if (!response.ok) throw new Error('Error en TTS');
-      const blob = await response.blob();
+      if (!response.ok) {
+        throw new Error(`TTS error: ${response.status}`);
+      }
+      const buffer = await response.arrayBuffer();
+      if (buffer.byteLength === 0) {
+        throw new Error('TTS response empty');
+      }
+      const blob = new Blob([buffer], { type: 'audio/mp3' });
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audioRef.current = audio;
@@ -36,7 +42,7 @@ export default function MessageBubble({ message }) {
       await audio.play();
     } catch (err) {
       console.error('TTS error:', err);
-      setTtsError('TTS iniciando... (puede tomar 1-2 min)');
+      setTtsError('TTS no disponible (servidor no encontrado)');
       setPlaying(false);
     }
   };

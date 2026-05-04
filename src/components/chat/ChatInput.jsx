@@ -1,11 +1,10 @@
 import { useState, useRef } from 'react';
-import { Send, Mic, MicOff, Paperclip, X, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, Mic, MicOff, Paperclip, X, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useDocumentExtractor } from '@/hooks/useDocumentExtractor';
 
-const STT_API_URL = `${window.location.origin}/stt-api/transcribe`;
-const TTS_API_URL = `${window.location.origin}/tts-api/synthesize`;
+const STT_API_URL = 'https://8001-01kms9d0rn13706v4vr53qr2vq.cloudspaces.litng.ai/transcribe';
+const TTS_API_URL = 'https://8002-01kp9rrxbcsd6cndbwf3qk8r6m.cloudspaces.litng.ai/synthesize';
 
 /**
  * Check if browser has Speech Recognition API (works locally on mobile)
@@ -19,23 +18,16 @@ export default function ChatInput({ onSend, disabled }) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [attachment, setAttachment] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [extractingText, setExtractingText] = useState('');
-  const [extractionStatus, setExtractionStatus] = useState(null); // 'extracting' | 'done' | 'error'
-  const { extractText, extracting } = useDocumentExtractor();
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
   const fileInputRef = useRef(null);
   const streamRef = useRef(null);
 
   const handleSend = () => {
-    if ((!text.trim() && !attachment && !extractingText) || disabled) return;
-    const messageText = extractingText ? `${extractingText}\n\n---Pregunta sobre el documento---` : text.trim();
-    onSend({ text: messageText, attachment });
+    if ((!text.trim() && !attachment) || disabled) return;
+    onSend({ text: text.trim(), attachment });
     setText('');
     setAttachment(null);
-    setExtractingText('');
-    setExtractionStatus(null);
   };
 
 const handleKeyDown = (e) => {
@@ -93,14 +85,23 @@ const handleKeyDown = (e) => {
         body: formData,
       });
 
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+        console.error('STT Error:', response.status, responseText);
+        throw new Error(`Error ${response.status}`);
       }
-
-      const data = await response.json();
+      
+      if (!responseText || responseText.trim() === '') {
+        console.error('STT empty response');
+        return '';
+      }
+      
+      const data = JSON.parse(responseText);
       return data.text?.trim() || '';
     } catch (error) {
       console.error('Error al transcribir audio:', error);
+      alert('Error al transcribir: ' + error.message);
       return '';
     } finally {
       setTranscribing(false);
@@ -161,54 +162,19 @@ const handleKeyDown = (e) => {
     if (!file) return;
     
     setAttachment({ file, name: file.name, type: 'document', url: null });
-    setExtractingText('');
-    setExtractionStatus('extracting');
     e.target.value = '';
-    
-    try {
-      const extracted = await extractText(file);
-      setExtractingText(extracted || '');
-      setExtractionStatus('done');
-    } catch (err) {
-      console.error('Error extracting:', err);
-      setExtractionStatus('error');
-    }
   };
 
   return (
     <div className="px-3 md:px-4 pb-3 md:pb-4 pt-2">
-      {/* Attachment preview with extraction status */}
+      {/* Attachment preview */}
       {attachment && (
         <div className="flex items-start gap-2 mb-2 px-3 py-2 bg-secondary rounded-xl border border-border text-xs text-foreground">
-          {attachment.type === 'audio' ? <Mic className="h-3.5 w-3.5 text-primary mt-0.5" /> : <FileText className="h-3.5 w-3.5 text-primary mt-0.5" />}
+          <FileText className="h-3.5 w-3.5 text-primary mt-0.5" />
           <div className="flex-1 min-w-0">
             <span className="block truncate">{attachment.name}</span>
-            {extractionStatus === 'extracting' && (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Extrayendo texto...
-              </span>
-            )}
-            {extractionStatus === 'done' && extractingText && (
-              <span className="flex items-center gap-1 text-green-500">
-                <CheckCircle className="h-3 w-3" />
-                ✓ Texto extraído
-              </span>
-            )}
-            {extractionStatus === 'done' && !extractingText && (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <AlertCircle className="h-3 w-3" />
-                No se pudo extraer (PDF)
-              </span>
-            )}
-            {extractionStatus === 'error' && (
-              <span className="flex items-center gap-1 text-red-500">
-                <AlertCircle className="h-3 w-3" />
-                Error al extraer
-              </span>
-            )}
           </div>
-          <button onClick={() => { setAttachment(null); setExtractingText(''); setExtractionStatus(null); }} className="text-muted-foreground hover:text-foreground shrink-0">
+          <button onClick={() => setAttachment(null)} className="text-muted-foreground hover:text-foreground shrink-0">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -261,7 +227,7 @@ const handleKeyDown = (e) => {
         <Button
           size="icon"
           onClick={handleSend}
-          disabled={disabled || transcribing || (!text.trim() && !attachment && !extractingText)}
+          disabled={disabled || transcribing || (!text.trim() && !attachment)}
           className="h-9 w-9 md:h-8 md:w-8 rounded-xl shrink-0 bg-primary hover:bg-primary/90"
         >
           {disabled || transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

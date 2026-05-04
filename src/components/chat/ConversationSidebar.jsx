@@ -1,51 +1,42 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, MessageSquare, Settings, Trash2, Edit2, Check, X, Bot, LogOut, User } from 'lucide-react';
+import { Plus, MessageSquare, Settings, Trash2, Edit2, Check, X, Bot, LogOut, User, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
+import { useTheme } from '@/hooks/useTheme.jsx';
 
-export default function ConversationSidebar({ conversations, activeId, onSelect, onCreate, onDelete, onRename, onOpenSettings }) {
+export default function ConversationSidebar({ conversations, activeId, onSelect, onCreate, onDelete, onRename, onOpenSettings, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
-    // Only clear session token, keep all data (conversations, messages, configs)
     logout();
     navigate('/login', { replace: true });
   };
 
-  const startEdit = (conv, e) => {
-    e.stopPropagation();
-    setEditingId(conv.id);
-    setEditTitle(conv.title);
-  };
-
-  const confirmEdit = (id, e) => {
-    e.stopPropagation();
-    if (editTitle.trim()) onRename(id, editTitle.trim());
-    setEditingId(null);
-  };
-
-  const cancelEdit = (e) => {
-    e.stopPropagation();
-    setEditingId(null);
-  };
-
   return (
-    <div className="flex flex-col h-full bg-[hsl(222,47%,7%)] border-r border-border w-full sm:w-72 md:w-64 pb-[env(safe-area-inset-bottom,0px)]">
+    <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border w-full sm:w-72 md:w-64 pb-[env(safe-area-inset-bottom,0px)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-        <h1 className="text-base font-semibold text-foreground tracking-tight">Chat con SLMs</h1>
+      <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <Button size="icon" variant="ghost" onClick={onClose} className="h-8 w-8 md:hidden text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          <h1 className="text-base font-semibold text-sidebar-foreground tracking-tight">Chat con SLMs</h1>
+        </div>
         <div className="flex items-center">
           <Link to="/rag">
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent" title="RAG">
               <Bot className="h-4 w-4" />
             </Button>
           </Link>
-          <Button size="icon" variant="ghost" onClick={onCreate} className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
+<Button size="icon" variant="ghost" onClick={onCreate} className="h-8 w-8 text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent" title="Nueva conversación">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -108,39 +99,45 @@ export default function ConversationSidebar({ conversations, activeId, onSelect,
       </div>
 
       {/* User profile & settings */}
-      <div className="border-t border-border p-3 space-y-2">
+      <div className="border-t border-sidebar-border p-3 space-y-2">
         {/* User info */}
         {user && (
-          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-secondary/50">
-            <div className="h-7 w-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
-              <User className="h-3.5 w-3.5 text-primary" />
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-sidebar-accent/50">
+            <div className="h-7 w-7 rounded-full bg-sidebar-primary/20 border border-sidebar-primary/30 flex items-center justify-center shrink-0">
+              <User className="h-3.5 w-3.5 text-sidebar-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{user.name}</p>
+              <p className="text-xs font-medium text-sidebar-foreground truncate">{user.name}</p>
               <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
         )}
 
-        {/* Action buttons */}
+{/* Action buttons */}
         <div className="flex gap-1.5">
           <Button
             variant="ghost"
             size="sm"
             onClick={onOpenSettings}
-            className="flex-1 justify-start gap-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary text-xs"
+            className="flex-1 justify-start gap-1.5 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent text-xs"
           >
             <Settings className="h-3.5 w-3.5" />
             LLM
           </Button>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+          >
+            {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          </button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="flex-1 justify-start gap-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 text-xs"
+            className="justify-start gap-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
           >
             <LogOut className="h-3.5 w-3.5" />
-            Salir
           </Button>
         </div>
       </div>

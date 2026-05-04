@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from '@/lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext.jsx';
+import { ThemeProvider } from '@/hooks/useTheme.jsx';
 
 // Pages
 import Chat from '@/pages/chat';
@@ -51,25 +52,27 @@ const GuestGuard = ({ children }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <Routes>
-            {/* Public routes - only for guests */}
-            <Route path="/login" element={<GuestGuard><Login /></GuestGuard>} />
-            <Route path="/register" element={<GuestGuard><Register /></GuestGuard>} />
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <Routes>
+              {/* Public routes - only for guests */}
+              <Route path="/login" element={<GuestGuard><Login /></GuestGuard>} />
+              <Route path="/register" element={<GuestGuard><Register /></GuestGuard>} />
 
-            {/* Protected routes - require authentication */}
-            <Route path="/" element={<AuthGuard><Chat /></AuthGuard>} />
-            <Route path="/rag" element={<AuthGuard><RAG /></AuthGuard>} />
+              {/* Protected routes - require authentication */}
+              <Route path="/" element={<AuthGuard><Chat /></AuthGuard>} />
+              <Route path="/rag" element={<AuthGuard><RAG /></AuthGuard>} />
 
-            {/* Catch all */}
-            <Route path="*" element={<PageNotFound />} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+              {/* Catch all */}
+              <Route path="*" element={<PageNotFound />} />
+            </Routes>
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
