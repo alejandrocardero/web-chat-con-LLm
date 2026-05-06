@@ -56,7 +56,7 @@ export default function Chat() {
     setMessages(msgs);
   };
 
-  const DEFAULT_HF_TOKEN = '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';
+  const DEFAULT_HF_TOKEN = import.meta.env.VITE_HUGGING_FACE_TOKEN;
 
   const loadLLMConfig = async () => {
     const list = await base44.entities.LLMConfig.list();

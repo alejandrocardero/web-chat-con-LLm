@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import mammoth from 'mammoth';
 
-const DEFAULT_HF_TOKEN = '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';
+const DEFAULT_HF_TOKEN = import.meta.env.VITE_HUGGING_FACE_TOKEN;
 
 export default function RAG() {
   const [file, setFile] = useState(null);

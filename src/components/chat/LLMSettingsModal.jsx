@@ -29,7 +29,7 @@ const HF_MODELS = [
   // NO disponibles: SmolLM2, SmolLM3, Phi-3.5, Gemma-2, Mistral-7B, Qwen 1.5B/3B/3B-Instruct
 ];
 
-const HF_TOKEN = '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';
+const HF_TOKEN = import.meta.env.VITE_HUGGING_FACE_TOKEN;
 
 export default function LLMSettingsModal({ open, onClose }) {
 
