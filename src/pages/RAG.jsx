@@ -240,7 +240,7 @@ export default function RAG() {
         {hfToken && !showTokenInput && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <p className="text-sm text-muted-foreground">
-              Token: <span className="text-foreground font-mono">hf_****{hfToken.slice(-4)}</span>
+              Token: <span className="text-foreground font-mono">hf_****{hfToken?.slice(-4) || '----'}</span>
             </p>
             <div className="flex gap-2">
               <button
