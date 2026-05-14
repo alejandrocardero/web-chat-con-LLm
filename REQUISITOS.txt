@@ -1,0 +1,297 @@
+================================================================================
+                         NEXUS CHAT - REQUISITOS Y USO
+================================================================================
+
+DESCRIPCIÓN
+-----------
+Nexus Chat es una aplicación web que te permite chatear con modelos de 
+lenguaje (LLM) usando Hugging Face como proveedor. La aplicación guarda 
+tus conversaciones, configuraciones y datos de forma independiente por 
+cuenta de usuario en localStorage.
+
+
+================================================================================
+REQUISITOS PREVIOS
+================================================================================
+
+1. NODE.JS Y NPM
+   ---------------
+   - Node.js versión 18 o superior
+   - npm (viene incluido con Node.js)
+   
+   Descargar desde: https://nodejs.org/
+   
+   Verificar instalación:
+   > node --version
+   > npm --version
+
+
+2. TOKEN DE HUGGING FACE (OBLIGATORIO)
+   ------------------------------------
+   - Necesitas una cuenta gratuita en Hugging Face
+   - Generar un token de API con permisos de "Read"
+   
+   Pasos para obtener el token:
+   a) Ve a: https://huggingface.co/settings/tokens
+   b) Crea un nuevo token (selecciona "Read" como permiso)
+   c) Copia el token (comienza con "hf_")
+
+
+================================================================================
+INSTALACIÓN
+================================================================================
+
+1. CLONA O DESCARGA EL PROYECTO
+   -----------------------------
+   > git clone <url-del-repositorio>
+   > cd "nexus chat"
+
+
+2. INSTALA LAS DEPENDENCIAS
+   -------------------------
+   > npm install
+
+
+3. CONFIGURA EL TOKEN DE HUGGING FACE (ELIGE UNA OPCIÓN)
+   -----------------------------------------------------
+
+   OPCIÓN A - Variable de entorno (RECOMENDADO):
+   - Copia el archivo .env.example a .env
+   - Edita .env y coloca tu token:
+     VITE_HF_TOKEN=hf_tu_token_aqui
+   - NO subas .env a Git (ya está en .gitignore)
+
+   OPCIÓN B - Ingreso manual en la app:
+   - Inicia la app con: npm run dev
+   - Ve a Configuración (icono de engranaje en el sidebar)
+   - Ingresa tu token en "Hugging Face API Token"
+   - Guarda la configuración
+
+
+4. INICIA LA APLICACIÓN
+   ---------------------
+   > npm run dev
+   
+   La aplicación se abrirá en:
+   http://localhost:5173
+
+
+================================================================================
+CREAR CUENTA
+================================================================================
+
+1. En la página de registro, ingresa:
+   - Nombre
+   - Email (solo dominios permitidos: gmail.com, yahoo.com, hotmail.com, 
+     outlook.com, icloud.com, protonmail.com, mail.com, live.com, msn.com)
+   - Contraseña (mínimo 6 caracteres)
+
+2. Cada cuenta tiene sus propios datos independientes:
+   - Sus propias conversaciones
+   - Sus propios mensajes
+   - Su propia configuración de LLM
+   - Su propio tema (claro/oscuro)
+
+
+================================================================================
+CÓMO USAR LA APLICACIÓN
+================================================================================
+
+1. PROVEEDORES DE LLM
+   -------------------
+   La app soporta tres proveedores:
+   
+   a) HUGGING FACE (recomendado)
+      - Modelos gratuitos disponibles
+      - No requiere servidor local
+      - Configuración ya incluida con token
+   
+   b) OLLAMA (OpenAI compatible)
+      - Usa modelos locales en tu PC
+      - URL: http://192.168.x.x:11434/v1
+      - Requiere tener Ollama instalado y ejecutándose
+   
+   c) CUSTOM (API propia)
+      - URL de tu API desplegada
+      - Modelo específico para tu servicio
+
+
+2. CREAR NUEVA CONVERSACIÓN
+   -------------------------
+   - Haz clic en el botón "+" en la parte superior del sidebar
+   - Se creará una nueva conversación
+
+
+3. ENVIAR MENSAJES
+   ----------------
+   - Escribe tu mensaje en el área de texto
+   - Presiona ENTER para enviar
+   - Presiona SHIFT+ENTER para salto de línea
+   
+   También puedes:
+   - Grabar audio con el micrófono (usa reconocimiento de voz del navegador)
+   - Adjuntar documentos con el clip (.txt, .md, .docx, .json, .csv)
+
+
+4. GESTIONAR CONVERSACIONES
+   -------------------------
+   - Renombrar: Haz clic en el lápiz junto al nombre
+   - Eliminar: Haz clic en el icono de basura
+   - Cambiar entre conversaciones: Haz clic en el nombre
+
+
+5. CONFIGURAR MODELO
+   ------------------
+   - Haz clic en "LLM" en el sidebar
+   - Ajusta los parámetros:
+     * Proveedor: Hugging Face / Ollama / Custom
+     * Modelo: Selecciona de la lista (HF) o ingresa nombre (Ollama)
+     * Temperatura: Creatividad (0 = preciso, 2 = creativo)
+     * Máx. tokens: Longitud máxima de respuesta
+   - Prueba la conexión antes de guardar
+
+
+6. MODO RAG (Retrieval-Augmented Generation)
+   ------------------------------------------
+   - Ve a la página RAG desde el sidebar (icono de Bot)
+   - Sube un documento para indexarlo
+   - Haz búsquedas en el contenido del documento
+   - Usa los fragmentos encontrados como contexto para el LLM
+
+
+================================================================================
+SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: "Token de Hugging Face no configurado"
+-----------------------------------------------
+SOLUCIÓN:
+   1. Configura el token mediante .env o manualmente en la app
+   2. Revisa CONFIGURACION_HF.md para más detalles
+
+
+PROBLEMA: Error 401 (Unauthorized) al usar el LLM
+-------------------------------------------------
+SOLUCIÓN:
+   1. Tu token puede haber expirado
+   2. Obtén un nuevo token en: https://huggingface.co/settings/tokens
+   3. Actualiza el token en la configuración de la app
+
+
+PROBLEMA: Error 403 (Forbidden)
+-------------------------------
+SOLUCIÓN:
+   - Tu token no tiene permisos suficientes
+   - Asegúrate de que el token tenga permisos de "Read"
+
+
+PROBLEMA: No recibo respuesta del modelo
+----------------------------------------
+SOLUCIÓN:
+   1. Verifica que el token esté configurado correctamente
+   2. Abre la consola del navegador (F12) y revisa los errores
+   3. Prueba cambiar a un modelo más ligero (ej: Llama 3.2 1B)
+
+
+PROBLEMA: Las conversaciones de otra cuenta aparecen
+----------------------------------------------------
+SOLUCIÓN:
+   - Cada cuenta tiene datos independientes
+   - Verifica que hayas iniciado sesión con tu cuenta
+   - Los datos se almacenan separados por usuario
+
+
+PROBLEMA: La aplicación no carga
+--------------------------------
+SOLUCIÓN:
+   1. Verifica que Node.js esté instalado: > node --version
+   2. Ejecuta: > npm install
+   3. Ejecuta: > npm run dev
+
+
+================================================================================
+COMANDOS ÚTILES DE NPM
+================================================================================
+
+> npm run dev         - Inicia el servidor de desarrollo (localhost:5173)
+> npm run build       - Compila para producción
+> npm run preview     - Vista previa de la build de producción
+> npm run lint        - Verifica errores de código
+> npm run lint:fix    - Corrige errores de código automáticamente
+
+
+================================================================================
+ESTRUCTURA DE ARCHIVOS
+================================================================================
+
+nexus chat/
+├── scr/
+│   ├── api/              - Cliente de conexión (base44Client.js)
+│   ├── components/       - Componentes React
+│   │   ├── chat/         - Componentes del chat
+│   │   └── ui/           - Componentes de interfaz
+│   ├── hooks/            - Hooks personalizados
+│   ├── lib/              - Utilidades y contexto de auth
+│   ├── pages/            - Páginas principales (Chat, RAG, Login, Register)
+│   └── app.jsx           - Componente principal
+├── entidades/            - Esquemas de entidades (referencia)
+├── .env.example          - Plantilla de variables de entorno
+├── CONFIGURACION_HF.md   - Instrucciones del token HF
+├── package.json          - Dependencias del proyecto
+├── vite.config.js        - Configuración de Vite
+└── tailwind.config.js    - Configuración de Tailwind CSS
+
+
+================================================================================
+TECNOLOGÍAS UTILIZADAS
+================================================================================
+
+- React 18.2          - Framework de UI
+- Vite 5.1            - Build tool y dev server
+- Tailwind CSS 3.4    - Estilos
+- Radix UI            - Componentes accesibles
+- TanStack Query 5    - Gestión de estado
+- React Markdown      - Renderizado de Markdown
+- LocalStorage        - Almacenamiento local
+
+
+================================================================================
+NOTAS IMPORTANTES
+================================================================================
+
+1. PRIVACIDAD
+   - Todos los datos se guardan LOCALMENTE en tu navegador
+   - No se envía información a servidores externos
+   - Las conversaciones se procesan con Hugging Face
+   - Cada cuenta tiene sus datos completamente aislados
+
+2. TOKEN DE HUGGING FACE
+   - NO subas tu token a GitHub (se invalidará automáticamente)
+   - Usa la variable de entorno .env o ingrésalo manualmente
+   - Cada usuario debe configurar su propio token
+
+3. RENDIMIENTO
+   - La velocidad de respuesta depende del modelo y tu conexión
+   - Modelos más grandes = respuestas más lentas pero mejores
+   - Modelos recomendados para velocidad: Llama 3.2 1B, Qwen 2.5 Coder 3B
+
+4. NAVEGADORES SOPORTADOS
+   - Chrome/Edge (recomendado)
+   - Firefox
+   - Safari
+   - Funcional en móvil
+
+
+================================================================================
+ARCHIVOS DE DOCUMENTACIÓN
+================================================================================
+
+- README.md              - Guía rápida de uso
+- REQUISITOS.txt         - Este archivo
+- CONFIGURACION_HF.md    - Configuración del token de Hugging Face
+- RAG_DOCUMENTATION.md  - Documentación del sistema RAG
+
+
+================================================================================
+¡DISFRUTA NEXUS CHAT! 🤖
+================================================================================

@@ -1,0 +1,21 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "T\u00edtulo"
+    },
+    "model": {
+      "type": "string",
+      "title": "Modelo LLM"
+    },
+    "preview": {
+      "type": "string",
+      "title": "Vista previa del \u00faltimo mensaje"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}
